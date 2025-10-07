@@ -15,8 +15,7 @@ const size_t random::g_compilationTimeAsSeed =
 thread_local random::number::engine_t g_engine{
 #if defined( STDFUNC_RANDOM_CONSTEXPR )
 
-    // Golden ratio
-    0x9E3779B97F4A7C15
+    g_goldenRatioSeed
 
 #else
 

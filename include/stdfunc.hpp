@@ -385,6 +385,7 @@ template < std::unsigned_integral T >
 }
 
 // xxHash3 for 64bits and 128bits
+// TODO: Make constexpr
 template < std::unsigned_integral T >
 [[nodiscard]] constexpr auto balanced( std::span< const std::byte > _data,
                                        size_t _seed = 0x9E3779B1 ) -> T {
@@ -410,12 +411,15 @@ namespace random {
 // Seconds from midnight
 extern const size_t g_compilationTimeAsSeed;
 
+// Golden ratio
+constexpr size_t g_goldenRatioSeed = 0x9E3779B97F4A7C15;
+
 namespace number {
 
 // Constexpr
 // XOR-Shift*( multiply ) for 32bits, 64bits and 128bits
 template < std::unsigned_integral T >
-[[nodiscard]] constexpr auto weak( T _seed ) -> T {
+[[nodiscard]] constexpr auto weak( T _seed = g_goldenRatioSeed ) -> T {
     T l_first = 0;
     T l_second = 0;
     T l_third = 0;
@@ -457,6 +461,22 @@ template < std::unsigned_integral T >
     return ( _seed * l_multiplier );
 }
 
+template < std::unsigned_integral T >
+[[nodiscard]] constexpr auto weak( T _min, T _max, T _seed = g_goldenRatioSeed )
+    -> T {
+    const uint64_t l_range = ( _max - _min + 1 );
+    const uint64_t l_limit =
+        ( ( std::numeric_limits< uint64_t >::max() / l_range ) * l_range );
+
+    uint64_t l_result = 0;
+
+    do {
+        l_result = weak< T >( _seed );
+    } while ( l_result >= l_limit );
+
+    return ( _min + ( l_result % l_range ) );
+}
+
 // Runtime
 using engine_t = std::
     conditional_t< ( sizeof( size_t ) > 4 ), std::mt19937_64, std::mt19937 >;
@@ -493,7 +513,9 @@ auto balanced() -> T {
 
 // TODO: Balanced and Robust
 
-constexpr auto g_defaultNumberGenerator = weak< size_t >;
+constexpr auto g_defaultNumberGenerator = []( auto... _arguments ) -> size_t {
+    return ( weak< size_t >( _arguments... ) );
+};
 
 } // namespace number
 
