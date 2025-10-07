@@ -47,6 +47,10 @@ using uint128_t = __uint128_t;
 namespace stdfunc {
 
 // TODO: Add support for 64bits
+#if defined( __i386__ )
+
+// TODO: SUpport All argument amount
+// TODO: Support return values
 namespace system {
 
 using call_t = enum class call : uint8_t {
@@ -105,6 +109,8 @@ FORCE_INLINE void syscall( call_t _systemCall, Arguments... _arguments ) {
 }
 
 } // namespace system
+
+#endif
 
 // Constants
 constexpr char g_commentSymbol = '#';
@@ -407,27 +413,31 @@ extern const size_t g_compilationTimeAsSeed;
 namespace number {
 
 // Constexpr
-// XOR-Shift for 32bits, 64bits and 128bits
+// XOR-Shift*( multiply ) for 32bits, 64bits and 128bits
 template < std::unsigned_integral T >
 [[nodiscard]] constexpr auto weak( T _seed ) -> T {
     T l_first = 0;
     T l_second = 0;
     T l_third = 0;
+    T l_multiplier = 0;
 
     if constexpr ( std::is_same_v< T, uint32_t > ) {
-        l_first = 13;
-        l_second = 17;
-        l_third = 5;
+        l_first = 7;
+        l_second = 1;
+        l_third = 9;
+        l_multiplier = 0x9E3779B1;
 
     } else if constexpr ( std::is_same_v< T, uint64_t > ) {
-        l_first = 13;
-        l_second = 7;
-        l_third = 17;
+        l_first = 12;
+        l_second = 25;
+        l_third = 27;
+        l_multiplier = 0x2545F4914F6CDD1D;
 
     } else if constexpr ( std::is_same_v< T, uint128_t > ) {
-        l_first = 23;
-        l_second = 17;
-        l_third = 26;
+        l_first = 35;
+        l_second = 21;
+        l_third = 45;
+        l_multiplier = 0x2545F4914F6CDD1D;
 
     } else {
         // TODO: Message
@@ -444,7 +454,7 @@ template < std::unsigned_integral T >
     _seed ^= ( _seed >> l_second );
     _seed ^= ( _seed << l_third );
 
-    return ( _seed );
+    return ( _seed * l_multiplier );
 }
 
 // Runtime
@@ -455,7 +465,7 @@ extern thread_local engine_t g_engine;
 
 template < typename T >
     requires std::is_arithmetic_v< T >
-auto strong( T _min, T _max ) -> T {
+auto balanced( T _min, T _max ) -> T {
     using distribution_t =
         std::conditional_t< std::is_integral_v< T >,
                             std::uniform_int_distribution< T >,
@@ -466,7 +476,7 @@ auto strong( T _min, T _max ) -> T {
 
 template < typename T >
     requires std::is_arithmetic_v< T >
-auto strong() -> T {
+auto balanced() -> T {
     using numericLimit_t = std::numeric_limits< T >;
 
     const auto l_max = numericLimit_t::max();
@@ -820,8 +830,7 @@ template < typename T >
 using reflect_t = glz::reflect< T >;
 
 // Functions that take instance
-template < typename T, typename Callback >
-    requires is_reflectable< T >
+template < is_reflectable T, typename Callback >
 constexpr void iterateStructTopMostFields( T&& _instance,
                                            Callback&& _callback ) {
     glz::for_each_field( std::forward< T >( _instance ),
@@ -829,16 +838,14 @@ constexpr void iterateStructTopMostFields( T&& _instance,
 }
 
 // Functions that take type
-template < typename T, typename Callback >
-    requires is_reflectable< T >
+template < is_reflectable T, typename Callback >
 constexpr void iterateStructTopMostFields( Callback&& _callback ) {
     constexpr T l_instance{};
 
     glz::for_each_field( l_instance, std::forward< Callback >( _callback ) );
 }
 
-template < typename T >
-    requires is_reflectable< T >
+template < is_reflectable T >
 consteval auto hasMemberWithName( std::string_view _name ) -> bool {
     return ( std::ranges::contains( reflect_t< T >::keys, _name ) );
 }
