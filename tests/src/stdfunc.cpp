@@ -8,6 +8,13 @@
 #include <numeric>
 #include <unordered_set>
 
+#include "stdcompress.hpp"
+#include "stddecompress.hpp"
+#include "stdfilesystem.hpp"
+#include "stdhash.hpp"
+#include "stdliterals.hpp"
+#include "stdmeta.hpp"
+#include "stdrandom.hpp"
 #include "test.hpp"
 
 using namespace stdfunc;

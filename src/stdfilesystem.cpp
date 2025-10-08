@@ -1,5 +1,3 @@
-#pragma once
-
 #include "stdfilesystem.hpp"
 
 #include <linux/limits.h>
