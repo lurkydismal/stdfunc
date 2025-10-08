@@ -235,6 +235,7 @@ constexpr void assert(
 #endif
 
 // Utility functions ( no side-effects )
+// TODO: Accept hex
 [[nodiscard]] constexpr auto makeU128( std::string_view _string ) -> uint128_t {
     if ( !std::ranges::all_of( _string, []( char _symbol ) -> bool {
              return ( ( _symbol >= '0' ) && ( _symbol <= '9' ) );
@@ -273,6 +274,7 @@ template < typename SymbolTypes, SymbolTypes... _symbols >
         std::byte{ _symbols }... } );
 }
 
+// TODO: Accept hex
 template < typename SymbolTypes, SymbolTypes... _symbols >
 [[nodiscard]] consteval auto operator""_u128() -> uint128_t {
     assert( ( ... && ( _symbols <= 0xFF ) ) );
@@ -362,8 +364,8 @@ template < std::unsigned_integral T >
         l_prime = 0x100000001b3;
 
     } else if constexpr ( std::is_same_v< T, uint128_t > ) {
-        l_offsetBasis = makeU128( "0x6C62272E07BB014262B821756295C58D" );
-        l_prime = makeU128( "0x1000000000000000000013b" );
+        l_offsetBasis = makeU128( "6C62272E07BB014262B821756295C58D" );
+        l_prime = makeU128( "1000000000000000000013b" );
 
     } else {
         // TODO: Message
@@ -412,7 +414,18 @@ namespace random {
 extern const size_t g_compilationTimeAsSeed;
 
 // Golden ratio
-constexpr size_t g_goldenRatioSeed = 0x9E3779B97F4A7C15;
+template < std::unsigned_integral T >
+constexpr T g_goldenRatioSeed = [] consteval -> T {
+    if constexpr ( std::is_same_v< T, uint32_t > ) {
+        return ( 0x9E3779B9UL );
+
+    } else if constexpr ( std::is_same_v< T, uint64_t > ) {
+        return ( 0x9E3779B97F4A7C15ULL );
+
+    } else if constexpr ( std::is_same_v< T, uint128_t > ) {
+        return ( makeU128( "9E3779B97F4A7C15F39CC0605CEDC835" ) );
+    }
+}();
 
 // TODO: Weak: add float variant
 namespace number {
@@ -420,7 +433,7 @@ namespace number {
 // Constexpr
 // XOR-Shift*( multiply ) for 32bits, 64bits and 128bits
 template < std::unsigned_integral T >
-[[nodiscard]] constexpr auto weak( T _seed = g_goldenRatioSeed ) -> T {
+[[nodiscard]] constexpr auto weak( T _seed = g_goldenRatioSeed< T > ) -> T {
     T l_first = 0;
     T l_second = 0;
     T l_third = 0;
@@ -463,8 +476,9 @@ template < std::unsigned_integral T >
 }
 
 template < std::unsigned_integral T >
-[[nodiscard]] constexpr auto weak( T _min, T _max, T _seed = g_goldenRatioSeed )
-    -> T {
+[[nodiscard]] constexpr auto weak( T _min,
+                                   T _max,
+                                   T _seed = g_goldenRatioSeed< T > ) -> T {
     const T l_range = ( _max - _min + 1 );
     const T l_limit =
         ( ( std::numeric_limits< T >::max() / l_range ) * l_range );

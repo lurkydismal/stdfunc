@@ -5,14 +5,18 @@
 
 namespace stdfunc {
 
+namespace random {
+
 // Seconds from midnight
-const size_t random::g_compilationTimeAsSeed =
+const size_t g_compilationTimeAsSeed =
     ( ( ( ( ( __TIME__[ 0 ] - '0' ) * 10 ) + ( __TIME__[ 1 ] - '0' ) ) *
         3600 ) +
       ( ( ( ( __TIME__[ 3 ] - '0' ) * 10 ) + ( __TIME__[ 4 ] - '0' ) ) * 60 ) +
       ( ( ( __TIME__[ 6 ] - '0' ) * 10 ) + ( __TIME__[ 7 ] - '0' ) ) );
 
-thread_local random::number::engine_t g_engine{
+namespace number {
+
+thread_local engine_t g_engine{
 #if defined( STDFUNC_RANDOM_CONSTEXPR )
 
     g_goldenRatioSeed
@@ -23,6 +27,10 @@ thread_local random::number::engine_t g_engine{
 
 #endif
 };
+
+} // namespace number
+
+} // namespace random
 
 namespace compress {
 
