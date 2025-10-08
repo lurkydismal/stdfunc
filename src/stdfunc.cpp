@@ -1,6 +1,9 @@
 #include "stdfunc.hpp"
 
+#include <limits.h>
 #include <snappy.h>
+#include <sys/types.h>
+#include <unistd.h>
 #include <zstd.h>
 
 namespace stdfunc {
