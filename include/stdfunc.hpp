@@ -414,6 +414,7 @@ extern const size_t g_compilationTimeAsSeed;
 // Golden ratio
 constexpr size_t g_goldenRatioSeed = 0x9E3779B97F4A7C15;
 
+// TODO: Weak: add float variant
 namespace number {
 
 // Constexpr
@@ -464,11 +465,11 @@ template < std::unsigned_integral T >
 template < std::unsigned_integral T >
 [[nodiscard]] constexpr auto weak( T _min, T _max, T _seed = g_goldenRatioSeed )
     -> T {
-    const uint64_t l_range = ( _max - _min + 1 );
-    const uint64_t l_limit =
-        ( ( std::numeric_limits< uint64_t >::max() / l_range ) * l_range );
+    const T l_range = ( _max - _min + 1 );
+    const T l_limit =
+        ( ( std::numeric_limits< T >::max() / l_range ) * l_range );
 
-    uint64_t l_result = 0;
+    T l_result = 0;
 
     do {
         l_result = weak< T >( _seed );
@@ -511,7 +512,7 @@ auto balanced() -> T {
     }
 }
 
-// TODO: Balanced and Robust
+// TODO: Strong and Robust
 
 constexpr auto g_defaultNumberGenerator = []( auto... _arguments ) -> size_t {
     return ( weak< size_t >( _arguments... ) );
@@ -521,26 +522,22 @@ constexpr auto g_defaultNumberGenerator = []( auto... _arguments ) -> size_t {
 
 template < typename Container >
     requires is_container< Container >
-constexpr auto value(
-    Container& _container,
-    auto _randomNumberGenerator = number::g_defaultNumberGenerator ) ->
+constexpr auto value( Container& _container ) ->
     typename Container::value_type& {
     assert( !_container.empty() );
 
     return ( _container.at(
-        _randomNumberGenerator( 0, ( _container.size() - 1 ) ) ) );
+        number::g_defaultNumberGenerator( 0, ( _container.size() - 1 ) ) ) );
 }
 
 template < typename Container >
     requires is_container< Container >
-constexpr auto value(
-    const Container& _container,
-    auto _randomNumberGenerator = number::g_defaultNumberGenerator ) -> const
+constexpr auto value( const Container& _container ) -> const
     typename Container::value_type& {
     assert( !_container.empty() );
 
     return ( _container.at(
-        _randomNumberGenerator( 0, ( _container.size() - 1 ) ) ) );
+        number::g_defaultNumberGenerator( 0, ( _container.size() - 1 ) ) ) );
 }
 
 template < typename Container >
@@ -567,46 +564,35 @@ constexpr auto view( const Container& _container ) {
 
 template < typename Container, typename T = typename Container::value_type >
     requires( is_container< Container > && std::is_arithmetic_v< T > )
-constexpr void fill(
-    Container& _container,
-    T _min,
-    T _max,
-    auto _randomNumberGenerator = number::g_defaultNumberGenerator ) {
+constexpr void fill( Container& _container, T _min, T _max ) {
     std::ranges::generate( _container, [ & ] constexpr -> auto {
-        return ( _randomNumberGenerator( _min, _max ) );
+        return ( number::g_defaultNumberGenerator( _min, _max ) );
     } );
 }
 
 template < typename Container, typename T = typename Container::value_type >
     requires( is_container< Container > && std::is_same_v< T, std::byte > )
-constexpr void fill(
-    Container& _container,
-    uint8_t _min,
-    uint8_t _max,
-    auto _randomNumberGenerator = number::g_defaultNumberGenerator ) {
+constexpr void fill( Container& _container, uint8_t _min, uint8_t _max ) {
     std::ranges::generate( _container, [ & ] constexpr -> auto {
-        return (
-            static_cast< std::byte >( _randomNumberGenerator( _min, _max ) ) );
+        return ( static_cast< std::byte >(
+            number::g_defaultNumberGenerator( _min, _max ) ) );
     } );
 }
 
 template < typename Container, typename T = typename Container::value_type >
     requires( is_container< Container > && std::is_arithmetic_v< T > )
-constexpr void fill(
-    Container& _container,
-    auto _randomNumberGenerator = number::g_defaultNumberGenerator ) {
+constexpr void fill( Container& _container ) {
     std::ranges::generate( _container, [ & ] constexpr -> auto {
-        return ( _randomNumberGenerator() );
+        return ( number::g_defaultNumberGenerator() );
     } );
 }
 
 template < typename Container, typename T = typename Container::value_type >
     requires( is_container< Container > && std::is_same_v< T, std::byte > )
-constexpr void fill(
-    Container& _container,
-    auto _randomNumberGenerator = number::g_defaultNumberGenerator ) {
+constexpr void fill( Container& _container ) {
     std::ranges::generate( _container, [ & ] constexpr -> auto {
-        return ( static_cast< std::byte >( _randomNumberGenerator() ) );
+        return (
+            static_cast< std::byte >( number::g_defaultNumberGenerator() ) );
     } );
 }
 
@@ -862,7 +848,7 @@ constexpr void iterateStructTopMostFields( T&& _instance,
 // Functions that take type
 template < is_reflectable T, typename Callback >
 constexpr void iterateStructTopMostFields( Callback&& _callback ) {
-    constexpr T l_instance{};
+    T l_instance{};
 
     glz::for_each_field( l_instance, std::forward< Callback >( _callback ) );
 }
