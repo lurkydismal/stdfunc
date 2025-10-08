@@ -348,22 +348,23 @@ template < std::integral T >
 namespace hash {
 
 // FNV-1A for 32bits, 64bits and 128bits
-template < std::unsigned_integral T >
-[[nodiscard]] constexpr auto weak( std::span< const std::byte > _data ) -> T {
+template < std::integral T, typename ReturnT = std::make_unsigned_t< T > >
+[[nodiscard]] constexpr auto weak( std::span< const std::byte > _data )
+    -> ReturnT {
     assert( _data.size() );
 
-    T l_offsetBasis = 0;
-    T l_prime = 0;
+    ReturnT l_offsetBasis = 0;
+    ReturnT l_prime = 0;
 
-    if constexpr ( std::is_same_v< T, uint32_t > ) {
+    if constexpr ( sizeof( T ) == sizeof( uint32_t ) ) {
         l_offsetBasis = 0x811C9DC5;
         l_prime = 0x1000193;
 
-    } else if constexpr ( std::is_same_v< T, uint64_t > ) {
+    } else if constexpr ( sizeof( T ) == sizeof( uint64_t ) ) {
         l_offsetBasis = 0xCBF29CE484222325;
         l_prime = 0x100000001b3;
 
-    } else if constexpr ( std::is_same_v< T, uint128_t > ) {
+    } else if constexpr ( sizeof( T ) == sizeof( uint128_t ) ) {
         l_offsetBasis = makeU128( "6C62272E07BB014262B821756295C58D" );
         l_prime = makeU128( "1000000000000000000013b" );
 
@@ -372,7 +373,7 @@ template < std::unsigned_integral T >
         static_assert( false );
     }
 
-    T l_hash = l_offsetBasis;
+    ReturnT l_hash = l_offsetBasis;
 
     for ( const uint8_t _item :
           _data | std::views::transform( []( std::byte _byte ) -> uint8_t {
@@ -388,13 +389,15 @@ template < std::unsigned_integral T >
 
 // xxHash3 for 64bits and 128bits
 // TODO: Make constexpr
-template < std::unsigned_integral T >
+template < std::integral T, typename ReturnT = std::make_unsigned_t< T > >
 [[nodiscard]] constexpr auto balanced( std::span< const std::byte > _data,
-                                       size_t _seed = 0x9E3779B1 ) -> T {
-    if constexpr ( std::is_same_v< T, uint64_t > ) {
+                                       size_t _seed = 0x9E3779B1 ) -> ReturnT {
+    assert( _data.size() );
+
+    if constexpr ( sizeof( T ) == sizeof( uint64_t ) ) {
         return ( XXH3_64bits_withSeed( _data.data(), _data.size(), _seed ) );
 
-    } else if constexpr ( std::is_same_v< T, uint128_t > ) {
+    } else if constexpr ( sizeof( T ) == sizeof( uint128_t ) ) {
         return ( XXH3_128bits_withSeed( _data.data(), _data.size(), _seed ) );
 
     } else {
@@ -414,15 +417,15 @@ namespace random {
 extern const size_t g_compilationTimeAsSeed;
 
 // Golden ratio
-template < std::unsigned_integral T >
-constexpr T g_goldenRatioSeed = [] consteval -> T {
-    if constexpr ( std::is_same_v< T, uint32_t > ) {
-        return ( 0x9E3779B9UL );
+template < std::integral T, typename ReturnT = std::make_unsigned_t< T > >
+constexpr T g_goldenRatioSeed = [] consteval -> ReturnT {
+    if constexpr ( sizeof( T ) == sizeof( uint32_t ) ) {
+        return ( 0x9E3779B9U );
 
-    } else if constexpr ( std::is_same_v< T, uint64_t > ) {
-        return ( 0x9E3779B97F4A7C15ULL );
+    } else if constexpr ( sizeof( T ) == sizeof( uint64_t ) ) {
+        return ( 0x9E3779B97F4A7C15UL );
 
-    } else if constexpr ( std::is_same_v< T, uint128_t > ) {
+    } else if constexpr ( sizeof( T ) == sizeof( uint128_t ) ) {
         return ( makeU128( "9E3779B97F4A7C15F39CC0605CEDC835" ) );
     }
 }();
@@ -432,26 +435,27 @@ namespace number {
 
 // Constexpr
 // XOR-Shift*( multiply ) for 32bits, 64bits and 128bits
-template < std::unsigned_integral T >
-[[nodiscard]] constexpr auto weak( T _seed = g_goldenRatioSeed< T > ) -> T {
-    T l_first = 0;
-    T l_second = 0;
-    T l_third = 0;
-    T l_multiplier = 0;
+template < std::integral T, typename ReturnT = std::make_unsigned_t< T > >
+[[nodiscard]] constexpr auto weak( T _seed = g_goldenRatioSeed< T > )
+    -> ReturnT {
+    ReturnT l_first = 0;
+    ReturnT l_second = 0;
+    ReturnT l_third = 0;
+    ReturnT l_multiplier = 0;
 
-    if constexpr ( std::is_same_v< T, uint32_t > ) {
+    if constexpr ( sizeof( T ) == sizeof( uint32_t ) ) {
         l_first = 7;
         l_second = 1;
         l_third = 9;
         l_multiplier = 0x9E3779B1;
 
-    } else if constexpr ( std::is_same_v< T, uint64_t > ) {
+    } else if constexpr ( sizeof( T ) == sizeof( uint64_t ) ) {
         l_first = 12;
         l_second = 25;
         l_third = 27;
         l_multiplier = 0x2545F4914F6CDD1D;
 
-    } else if constexpr ( std::is_same_v< T, uint128_t > ) {
+    } else if constexpr ( sizeof( T ) == sizeof( uint128_t ) ) {
         l_first = 35;
         l_second = 21;
         l_third = 45;
@@ -462,20 +466,24 @@ template < std::unsigned_integral T >
         static_assert( false );
     }
 
-    const auto l_data = std::bit_cast<
-        std::array< std::byte, ( sizeof( T ) / sizeof( std::byte ) ) > >(
-        _seed );
+    static T l_seed = 0;
 
-    _seed = hash::weak< T >( l_data );
+    if ( !l_seed ) [[unlikely]] {
+        const auto l_data = std::bit_cast<
+            std::array< std::byte, ( sizeof( T ) / sizeof( std::byte ) ) > >(
+            _seed );
 
-    _seed ^= ( _seed << l_first );
-    _seed ^= ( _seed >> l_second );
-    _seed ^= ( _seed << l_third );
+        l_seed = hash::weak< ReturnT >( l_data );
+    }
 
-    return ( _seed * l_multiplier );
+    l_seed ^= ( l_seed << l_first );
+    l_seed ^= ( l_seed >> l_second );
+    l_seed ^= ( l_seed << l_third );
+
+    return ( l_seed * l_multiplier );
 }
 
-template < std::unsigned_integral T >
+template < std::integral T >
 [[nodiscard]] constexpr auto weak( T _min,
                                    T _max,
                                    T _seed = g_goldenRatioSeed< T > ) -> T {
@@ -483,7 +491,7 @@ template < std::unsigned_integral T >
     const T l_limit =
         ( ( std::numeric_limits< T >::max() / l_range ) * l_range );
 
-    T l_result = 0;
+    std::make_unsigned_t< T > l_result = 0;
 
     do {
         l_result = weak< T >( _seed );
@@ -528,30 +536,30 @@ auto balanced() -> T {
 
 // TODO: Strong and Robust
 
-constexpr auto g_defaultNumberGenerator = []( auto... _arguments ) -> size_t {
-    return ( weak< size_t >( _arguments... ) );
+template < typename T >
+    requires std::is_arithmetic_v< T >
+constexpr auto g_defaultNumberGenerator = []( auto... _arguments ) -> T {
+    return ( balanced< T >( _arguments... ) );
 };
 
 } // namespace number
 
-template < typename Container >
+template < typename Container, typename T = typename Container::value_type >
     requires is_container< Container >
-constexpr auto value( Container& _container ) ->
-    typename Container::value_type& {
+constexpr auto value( Container& _container ) -> T& {
     assert( !_container.empty() );
 
-    return ( _container.at(
-        number::g_defaultNumberGenerator( 0, ( _container.size() - 1 ) ) ) );
+    return ( _container.at( number::g_defaultNumberGenerator< T >(
+        0, ( _container.size() - 1 ) ) ) );
 }
 
-template < typename Container >
+template < typename Container, typename T = typename Container::value_type >
     requires is_container< Container >
-constexpr auto value( const Container& _container ) -> const
-    typename Container::value_type& {
+constexpr auto value( const Container& _container ) -> const T& {
     assert( !_container.empty() );
 
-    return ( _container.at(
-        number::g_defaultNumberGenerator( 0, ( _container.size() - 1 ) ) ) );
+    return ( _container.at( number::g_defaultNumberGenerator< T >(
+        0, ( _container.size() - 1 ) ) ) );
 }
 
 template < typename Container >
@@ -580,7 +588,7 @@ template < typename Container, typename T = typename Container::value_type >
     requires( is_container< Container > && std::is_arithmetic_v< T > )
 constexpr void fill( Container& _container, T _min, T _max ) {
     std::ranges::generate( _container, [ & ] constexpr -> auto {
-        return ( number::g_defaultNumberGenerator( _min, _max ) );
+        return ( number::g_defaultNumberGenerator< T >( _min, _max ) );
     } );
 }
 
@@ -589,7 +597,7 @@ template < typename Container, typename T = typename Container::value_type >
 constexpr void fill( Container& _container, uint8_t _min, uint8_t _max ) {
     std::ranges::generate( _container, [ & ] constexpr -> auto {
         return ( static_cast< std::byte >(
-            number::g_defaultNumberGenerator( _min, _max ) ) );
+            number::g_defaultNumberGenerator< uint32_t >( _min, _max ) ) );
     } );
 }
 
@@ -597,7 +605,7 @@ template < typename Container, typename T = typename Container::value_type >
     requires( is_container< Container > && std::is_arithmetic_v< T > )
 constexpr void fill( Container& _container ) {
     std::ranges::generate( _container, [ & ] constexpr -> auto {
-        return ( number::g_defaultNumberGenerator() );
+        return ( number::g_defaultNumberGenerator< T >() );
     } );
 }
 
@@ -605,8 +613,8 @@ template < typename Container, typename T = typename Container::value_type >
     requires( is_container< Container > && std::is_same_v< T, std::byte > )
 constexpr void fill( Container& _container ) {
     std::ranges::generate( _container, [ & ] constexpr -> auto {
-        return (
-            static_cast< std::byte >( number::g_defaultNumberGenerator() ) );
+        return ( static_cast< std::byte >(
+            number::g_defaultNumberGenerator< uint32_t >() ) );
     } );
 }
 
