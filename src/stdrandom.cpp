@@ -5,12 +5,15 @@
 
 namespace stdfunc::random {
 
+#if 0
+// TODO: Improve
 // Seconds from midnight
 const size_t g_compilationTimeAsSeed =
     ( ( ( ( ( __TIME__[ 0 ] - '0' ) * 10 ) + ( __TIME__[ 1 ] - '0' ) ) *
         3600 ) +
       ( ( ( ( __TIME__[ 3 ] - '0' ) * 10 ) + ( __TIME__[ 4 ] - '0' ) ) * 60 ) +
       ( ( ( __TIME__[ 6 ] - '0' ) * 10 ) + ( __TIME__[ 7 ] - '0' ) ) );
+#endif
 
 namespace number {
 

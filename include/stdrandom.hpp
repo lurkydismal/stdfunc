@@ -14,8 +14,11 @@
 // Utility functions ( side-effects )
 namespace stdfunc::random {
 
+#if 0
+// TODO: Improve
 // Seconds from midnight
 extern const size_t g_compilationTimeAsSeed;
+#endif
 
 // Golden ratio
 template < std::integral T, typename ReturnT = std::make_unsigned_t< T > >
