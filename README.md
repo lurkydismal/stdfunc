@@ -163,7 +163,7 @@ RNG helpers:
 
 stdfunc::random::g_engine.seed( 12345 ); // Will affect only balanced
 
-int l_number = stdfunc::random::number::weak< uint128_t >( 0, 100 );
+int128_t l_number = stdfunc::random::number::weak< uint128_t >( 0, 100 );
 
 int l_number2 = stdfunc::random::number::balanced< int >( 0, 100 );
 ```
