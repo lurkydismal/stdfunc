@@ -131,6 +131,9 @@ stdfunc::trap( "Fatal: {}", l_message );
 Compression (text - fast and good byte-wise compression; data - good data compression):
 
 ```cpp
+#include "stdcompress.hpp"
+#include "stddecompress.hpp"
+
 auto l_compressed = stdfunc::compress::text( "Hello, World!\n" );
 
 if ( l_compressed ) {
@@ -145,6 +148,8 @@ if ( l_compressed ) {
 Hashing:
 
 ```cpp
+#include "stdhash.hpp"
+
 const std::vector< std::byte > data = /* ... */;
 
 auto l_v32 = stdfunc::hash::weak< uint32_t >( std::span( data ) );
@@ -154,6 +159,8 @@ auto l_v128 = stdfunc::hash::balanced< uint128_t >( std::span( data ) );
 RNG helpers:
 
 ```cpp
+#include "stdrandom.hpp"
+
 stdfunc::random::g_engine.seed( 12345 ); // Will affect only balanced
 
 int l_number = stdfunc::random::number::weak< uint128_t >( 0, 100 );
@@ -164,6 +171,8 @@ int l_number2 = stdfunc::random::number::balanced< int >( 0, 100 );
 Utility helpers:
 
 ```cpp
+#include "stdfunc.hpp"
+
 auto l_container = stdfunc::makeVariantContainer< std::vector >( 1, "str", 3.0f ); // Will hold std::variant of all passed types
 
 size_t l_bytes = stdfunc::bitsToBytes( 13 ); // -> 2
