@@ -84,10 +84,12 @@ template < std::integral T >
              ( _symbol == '\v' ) );
 }
 
-[[nodiscard]] constexpr auto sanitizeString( std::string_view _string ) {
+[[nodiscard]] constexpr auto sanitizeString(
+    std::string_view _string,
+    char _commentSymbol = g_commentSymbol ) {
     return ( _string | std::views::drop_while( isSpace ) |
-             std::views::take_while( []( char _symbol ) constexpr -> bool {
-                 return ( _symbol != g_commentSymbol );
+             std::views::take_while( [ & ]( char _symbol ) constexpr -> bool {
+                 return ( _symbol != _commentSymbol );
              } ) |
              std::views::reverse | std::views::drop_while( isSpace ) |
              std::views::reverse );
