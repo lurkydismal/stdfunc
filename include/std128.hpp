@@ -5,6 +5,8 @@
 
 #include "stddebug.hpp"
 
+// TODO: Implement make128 and _128
+using int128_t = __int128_t;
 using uint128_t = __uint128_t;
 
 namespace stdfunc {
