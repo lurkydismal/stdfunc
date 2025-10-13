@@ -11,6 +11,13 @@ concept has_common_type = ( requires {
     typename std::common_type_t< Arguments... >;
 } && !std::is_void_v< std::common_type_t< Arguments... > > );
 
+// TODO: Implement
+#if 0
+template < typename T >
+concept is_lightweight =
+    ( std::is_fundamental_v< T > && std::is_trivially_copyable_v< T > );
+#endif
+
 template < typename T >
 concept is_container = ( std::ranges::range< T > && requires( T _container ) {
     typename T::value_type;

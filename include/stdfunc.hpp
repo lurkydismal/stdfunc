@@ -7,6 +7,7 @@
 #include <type_traits>
 #include <utility>
 #include <variant>
+#include <vector>
 
 // Function attributes
 #define FORCE_INLINE [[gnu::always_inline]] inline
@@ -31,7 +32,35 @@ constexpr char g_commentSymbol = '#';
 // Utility macros ( no side-effects )
 #define STRINGIFY( _value ) #_value
 
+template < typename... Ts >
+struct overloadedVisit : Ts... {
+    using Ts::operator()...;
+};
+
+template < typename... Ts >
+overloadedVisit( Ts... ) -> overloadedVisit< Ts... >;
+
 // Utility functions ( no side-effects )
+template < typename T, typename U = T >
+    requires std::is_trivially_copyable_v< T >
+[[nodiscard]] constexpr auto spanToVector( std::span< const T > _span )
+    -> std::vector< U > {
+    return ( _span | std::views::transform( []( T _data ) -> U {
+                 return ( static_cast< U >( _data ) );
+             } ) |
+             std::ranges::to< std::vector >() );
+}
+
+template < typename T, typename U = T >
+    requires( !std::is_trivially_copyable_v< T > )
+[[nodiscard]] constexpr auto spanToVector( std::span< const T > _span )
+    -> std::vector< U > {
+    return ( _span | std::views::transform( []( T& _data ) -> U {
+                 return ( static_cast< U >( _data ) );
+             } ) |
+             std::ranges::to< std::vector >() );
+}
+
 template < template < typename > typename Container, typename... Arguments >
 [[nodiscard]] constexpr auto makeVariantContainer( Arguments&&... _arguments ) {
     using variant_t = std::variant< std::decay_t< Arguments >... >;
@@ -84,12 +113,11 @@ template < std::integral T >
              ( _symbol == '\v' ) );
 }
 
-[[nodiscard]] constexpr auto sanitizeString(
-    std::string_view _string,
-    char _commentSymbol = g_commentSymbol ) {
+// TODO: Make comment symbol an optional argument
+[[nodiscard]] constexpr auto sanitizeString( std::string_view _string ) {
     return ( _string | std::views::drop_while( isSpace ) |
-             std::views::take_while( [ & ]( char _symbol ) constexpr -> bool {
-                 return ( _symbol != _commentSymbol );
+             std::views::take_while( []( char _symbol ) constexpr -> bool {
+                 return ( _symbol != g_commentSymbol );
              } ) |
              std::views::reverse | std::views::drop_while( isSpace ) |
              std::views::reverse );

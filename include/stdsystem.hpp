@@ -1,5 +1,11 @@
 #pragma once
 
+#if !defined( __linux__ )
+
+#error "stdfunc::system is Linux-only"
+
+#endif
+
 // TODO: Add support for 64bits
 #if defined( __i386__ )
 

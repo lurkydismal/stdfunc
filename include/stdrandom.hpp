@@ -148,8 +148,7 @@ constexpr auto g_defaultNumberGenerator = []( auto... _arguments ) -> T {
 
 } // namespace number
 
-template < typename Container, typename T = typename Container::value_type >
-    requires is_container< Container >
+template < is_container Container, typename T = typename Container::value_type >
 constexpr auto value( Container& _container ) -> T& {
     assert( !_container.empty() );
 
@@ -157,8 +156,7 @@ constexpr auto value( Container& _container ) -> T& {
         0, ( _container.size() - 1 ) ) ) );
 }
 
-template < typename Container, typename T = typename Container::value_type >
-    requires is_container< Container >
+template < is_container Container, typename T = typename Container::value_type >
 constexpr auto value( const Container& _container ) -> const T& {
     assert( !_container.empty() );
 
@@ -166,8 +164,7 @@ constexpr auto value( const Container& _container ) -> const T& {
         0, ( _container.size() - 1 ) ) ) );
 }
 
-template < typename Container >
-    requires is_container< Container >
+template < is_container Container >
 constexpr auto view( Container& _container ) {
     assert( !_container.empty() );
 
@@ -177,8 +174,7 @@ constexpr auto view( Container& _container ) {
              } ) );
 }
 
-template < typename Container >
-    requires is_container< Container >
+template < is_container Container >
 constexpr auto view( const Container& _container ) {
     assert( !_container.empty() );
 
@@ -188,16 +184,16 @@ constexpr auto view( const Container& _container ) {
              } ) );
 }
 
-template < typename Container, typename T = typename Container::value_type >
-    requires( is_container< Container > && std::is_arithmetic_v< T > )
+template < is_container Container, typename T = typename Container::value_type >
+    requires std::is_arithmetic_v< T >
 constexpr void fill( Container& _container, T _min, T _max ) {
     std::ranges::generate( _container, [ & ] constexpr -> auto {
         return ( number::g_defaultNumberGenerator< T >( _min, _max ) );
     } );
 }
 
-template < typename Container, typename T = typename Container::value_type >
-    requires( is_container< Container > && std::is_same_v< T, std::byte > )
+template < is_container Container, typename T = typename Container::value_type >
+    requires std::is_same_v< T, std::byte >
 constexpr void fill( Container& _container, uint8_t _min, uint8_t _max ) {
     std::ranges::generate( _container, [ & ] constexpr -> auto {
         return ( static_cast< std::byte >(
@@ -205,16 +201,16 @@ constexpr void fill( Container& _container, uint8_t _min, uint8_t _max ) {
     } );
 }
 
-template < typename Container, typename T = typename Container::value_type >
-    requires( is_container< Container > && std::is_arithmetic_v< T > )
+template < is_container Container, typename T = typename Container::value_type >
+    requires std::is_arithmetic_v< T >
 constexpr void fill( Container& _container ) {
     std::ranges::generate( _container, [ & ] constexpr -> auto {
         return ( number::g_defaultNumberGenerator< T >() );
     } );
 }
 
-template < typename Container, typename T = typename Container::value_type >
-    requires( is_container< Container > && std::is_same_v< T, std::byte > )
+template < is_container Container, typename T = typename Container::value_type >
+    requires std::is_same_v< T, std::byte >
 constexpr void fill( Container& _container ) {
     std::ranges::generate( _container, [ & ] constexpr -> auto {
         return ( static_cast< std::byte >(
