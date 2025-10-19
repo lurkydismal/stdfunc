@@ -1,27 +1,27 @@
 #pragma once
 
-#include <stdfunc.hpp>
-
 #include <cmath>
 #include <cstddef>
 #include <format>
 #include <limits>
 
-constexpr size_t g_floaT16TypeBitAmount = 16;
+#include "stdfunc.hpp"
+
+constexpr size_t g_float16TypeBitAmount = 16;
 
 using float16_t = _Float16 __attribute__( (
-    aligned( stdfunc::bitsToBytes( g_floaT16TypeBitAmount ) ) ) );
+    aligned( stdfunc::bitsToBytes( g_float16TypeBitAmount ) ) ) );
 
 using float16x2_t = float16_t __attribute__( (
-    vector_size( stdfunc::bitsToBytes( g_floaT16TypeBitAmount * 2 ) ) ) );
+    vector_size( stdfunc::bitsToBytes( g_float16TypeBitAmount * 2 ) ) ) );
 using float16x4_t = float16_t __attribute__( (
-    vector_size( stdfunc::bitsToBytes( g_floaT16TypeBitAmount * 4 ) ) ) );
+    vector_size( stdfunc::bitsToBytes( g_float16TypeBitAmount * 4 ) ) ) );
 using float16x8_t = float16_t __attribute__( (
-    vector_size( stdfunc::bitsToBytes( g_floaT16TypeBitAmount * 8 ) ) ) );
+    vector_size( stdfunc::bitsToBytes( g_float16TypeBitAmount * 8 ) ) ) );
 using float16x16_t = float16_t __attribute__( (
-    vector_size( stdfunc::bitsToBytes( g_floaT16TypeBitAmount * 16 ) ) ) );
+    vector_size( stdfunc::bitsToBytes( g_float16TypeBitAmount * 16 ) ) ) );
 using float16x32_t = float16_t __attribute__( (
-    vector_size( stdfunc::bitsToBytes( g_floaT16TypeBitAmount * 32 ) ) ) );
+    vector_size( stdfunc::bitsToBytes( g_float16TypeBitAmount * 32 ) ) ) );
 
 namespace std {
 
@@ -83,6 +83,6 @@ struct std::formatter< float16_t, char > {
     }
 
     auto format( float16_t _value, std::format_context& _context ) const {
-        return ( std::format_to( _context.out(), "{{}}", _value ) );
+        return ( std::format_to( _context.out(), "{}", _value ) );
     }
 };
