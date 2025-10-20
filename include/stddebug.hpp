@@ -47,6 +47,7 @@ constexpr auto formatWithColor( auto _what, std::string_view _color )
 
 } // namespace
 
+// TODO: Take optional and unpack
 template < is_formattable... Arguments >
 [[noreturn]] constexpr void trap(
     std::format_string< Arguments... > _format = "",
