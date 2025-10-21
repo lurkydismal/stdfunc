@@ -169,9 +169,8 @@ constexpr auto view( Container& _container ) {
     assert( !_container.empty() );
 
     return ( std::views::iota( 0 ) |
-             std::views::transform( [ & ]( auto ) constexpr -> auto {
-                 return ( value( _container ) );
-             } ) );
+             std::views::transform(
+                 [ & ]( auto ) -> auto { return ( value( _container ) ); } ) );
 }
 
 template < is_container Container >
@@ -179,9 +178,8 @@ constexpr auto view( const Container& _container ) {
     assert( !_container.empty() );
 
     return ( std::views::iota( 0 ) |
-             std::views::transform( [ & ]( auto ) constexpr -> auto {
-                 return ( value( _container ) );
-             } ) );
+             std::views::transform(
+                 [ & ]( auto ) -> auto { return ( value( _container ) ); } ) );
 }
 
 template < is_container Container, typename T = typename Container::value_type >

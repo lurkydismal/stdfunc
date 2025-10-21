@@ -116,7 +116,7 @@ template < std::integral T >
 // TODO: Make comment symbol an optional argument
 [[nodiscard]] constexpr auto sanitizeString( std::string_view _string ) {
     return ( _string | std::views::drop_while( isSpace ) |
-             std::views::take_while( []( char _symbol ) constexpr -> bool {
+             std::views::take_while( []( char _symbol ) -> bool {
                  return ( _symbol != g_commentSymbol );
              } ) |
              std::views::reverse | std::views::drop_while( isSpace ) |
