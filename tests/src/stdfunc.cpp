@@ -8,6 +8,7 @@
 #include <numeric>
 #include <unordered_set>
 
+#include "std128.hpp"
 #include "stdcompress.hpp"
 #include "stddecompress.hpp"
 #include "stdfilesystem.hpp"
@@ -572,132 +573,176 @@ TEST( stdfunc, generateHash$balanced ) {
     {
         // Valid buffer
         {
-            // Non NULL terminated string
-            {
-                std::array l_buffer = { '0'_b };
+            auto l_test = []< typename T >() -> void {
+                // Non NULL terminated string
+                {
+                    std::array l_buffer = { '0'_b };
 
-                EXPECT_NE( hash::balanced< size_t >( l_buffer ), size_t{} );
+                    EXPECT_NE( hash::balanced< T >( l_buffer ), size_t{} );
+                }
+
+                // NULL terminated string
+                {
+                    std::array l_buffer = ""_bytes;
+
+                    EXPECT_DEATH( ( void )hash::balanced< T >( l_buffer ),
+                                  ".*" );
+                }
+            };
+
+            // 64 bits
+            {
+                l_test.operator()< uint64_t >();
             }
 
-            // NULL terminated string
+            // 128 bits
             {
-                std::array l_buffer = ""_bytes;
-
-                EXPECT_DEATH( ( void )hash::balanced< size_t >( l_buffer ),
-                              ".*" );
+                l_test.operator()< uint128_t >();
             }
         }
     }
 
     // Valid buffer
     {
-        // Ensure multiple calls return nonzero values
-        {
-            for ( const auto _index : std::views::iota( 1uz, 10'000uz ) ) {
-                const size_t l_bufferLength = _index;
+        auto l_test = []< typename T >() -> void {
+            // Ensure multiple calls return nonzero values
+            {
+                for ( const auto _index : std::views::iota( 1uz, 10'000uz ) ) {
+                    const size_t l_bufferLength = _index;
 
-                std::vector< std::byte > l_buffer( l_bufferLength );
+                    std::vector< std::byte > l_buffer( l_bufferLength );
 
-                stdfunc::random::fill( l_buffer );
+                    stdfunc::random::fill( l_buffer );
 
-                EXPECT_EQ( l_buffer.size(), l_bufferLength );
+                    EXPECT_EQ( l_buffer.size(), l_bufferLength );
 
-                const auto l_actualHash = hash::balanced< size_t >( l_buffer );
+                    const auto l_actualHash = hash::balanced< T >( l_buffer );
 
-                EXPECT_TRUE( l_actualHash );
+                    EXPECT_TRUE( l_actualHash );
+                }
             }
+        };
+
+        // 64 bits
+        {
+            l_test.operator()< uint64_t >();
+        }
+
+        // 128 bits
+        {
+            l_test.operator()< uint128_t >();
         }
     }
 
+    // Other tests
     {
-        // -- Basic identical-input determinism --
-        std::vector< std::byte > l_d = { std::byte{ 0 }, std::byte{ 1 },
-                                         std::byte{ 2 }, std::byte{ 3 } };
-        auto l_span = std::span< std::byte >( l_d );
-        auto l_h1 = hash::balanced< uint64_t >( l_span );
-        auto l_h2 = hash::balanced< uint64_t >( l_span );
-        EXPECT_EQ( l_h1, l_h2 );
+        auto l_test = []< typename T >() -> void {
+            // -- Basic identical-input determinism --
+            std::vector< std::byte > l_d = { std::byte{ 0 }, std::byte{ 1 },
+                                             std::byte{ 2 }, std::byte{ 3 } };
+            auto l_span = std::span< std::byte >( l_d );
+            auto l_h1 = hash::balanced< T >( l_span );
+            auto l_h2 = hash::balanced< T >( l_span );
+            EXPECT_EQ( l_h1, l_h2 );
 
-        // wrapper sanity: matches direct XXH3 64bits call (note cast to size_t
-        // for return type)
-        EXPECT_EQ( l_h1, static_cast< size_t >( XXH3_64bits_withSeed(
-                             l_d.data(), l_d.size(),
-                             static_cast< unsigned >( 0x9e3779b1 ) ) ) );
-
-        // -- Default seed equals explicit default seed --
-        auto l_hExplicitDefault =
-            hash::balanced< size_t >( l_span, 0x9e3779b1 );
-        EXPECT_EQ( l_h1, l_hExplicitDefault );
-
-        // -- Different seeds should (practically always) produce different
-        // results --
-        auto l_hSeedDiff = hash::balanced< size_t >( l_span, 123456u );
-        EXPECT_NE( l_h1, l_hSeedDiff )
-            << "Different seeds produced same hash — "
-               "extremely unlikely but possible.";
-
-        // -- Empty span behavior --
-        std::vector< std::byte > l_empty;
-        auto l_emptySpan = std::span< std::byte >( l_empty );
-        EXPECT_DEATH( ( void )hash::balanced< uint64_t >( l_emptySpan ), ".*" );
-
-        // -- Small change in data should (practically always) change the hash
-        // --
-        std::vector< std::byte > l_d2 = l_d;
-        auto l_hOrig =
-            hash::balanced< size_t >( std::span< std::byte >( l_d2 ) );
-        l_d2[ 2 ] = std::byte{ 0xFF };
-        auto l_hChanged =
-            hash::balanced< size_t >( std::span< std::byte >( l_d2 ) );
-        EXPECT_NE( l_hOrig, l_hChanged )
-            << "Changing one byte produced same hash — extremely unlikely but "
-               "possible.";
-
-        // -- Hashing string content (ensure layout correct) --
-        const std::string l_s = "hello, xxhash!";
-        const auto l_bytesFromString =
-            []( std::string_view _s ) -> std::vector< std::byte > {
-            std::vector< std::byte > l_out( _s.size() );
-            if ( !l_out.empty() ) {
-                __builtin_memcpy( l_out.data(), _s.data(), _s.size() );
+            if constexpr ( sizeof( T ) == sizeof( uint64_t ) ) {
+                // wrapper sanity: matches direct rapidhash 64bits call (note
+                // cast to size_t for return type)
+                EXPECT_EQ( l_h1,
+                           static_cast< T >( rapidhash_withSeed(
+                               l_d.data(), l_d.size(),
+                               static_cast< unsigned >( 0x9e3779b1 ) ) ) );
             }
-            return ( l_out );
-        };
-        auto l_sbytes = l_bytesFromString( l_s );
-        auto l_hs =
-            hash::balanced< uint64_t >( std::span< std::byte >( l_sbytes ) );
-        // direct XXH3 64bits of the original char data must match (no
-        // reinterpretation errors)
-        EXPECT_EQ( l_hs, static_cast< size_t >( XXH3_64bits_withSeed(
-                             l_s.data(), l_s.size(),
-                             static_cast< unsigned >( 0x9e3779b1 ) ) ) );
 
-        // -- Larger data quick smoke test (no assertions beyond bounds) --
-        std::vector< std::byte > l_large( 1024 );
-        std::vector< unsigned char > l_tmp( l_large.size() );
-        std::ranges::iota( l_tmp, 0u );
+            // -- Default seed equals explicit default seed --
+            auto l_hExplicitDefault = hash::balanced< T >( l_span, 0x9e3779b1 );
+            EXPECT_EQ( l_h1, l_hExplicitDefault );
 
-        std::ranges::transform( l_tmp, l_large.begin(),
-                                []( unsigned char _c ) -> std::byte {
-                                    return ( static_cast< std::byte >( _c ) );
-                                } );
+            // -- Different seeds should (practically always) produce different
+            // results --
+            auto l_hSeedDiff = hash::balanced< T >( l_span, 123456u );
+            EXPECT_NE( l_h1, l_hSeedDiff )
+                << "Different seeds produced same hash — "
+                   "extremely unlikely but possible.";
+
+            // -- Empty span behavior --
+            std::vector< std::byte > l_empty;
+            auto l_emptySpan = std::span< std::byte >( l_empty );
+            EXPECT_DEATH( ( void )hash::balanced< T >( l_emptySpan ), ".*" );
+
+            // -- Small change in data should (practically always) change the
+            // hash
+            // --
+            std::vector< std::byte > l_d2 = l_d;
+            auto l_hOrig =
+                hash::balanced< T >( std::span< std::byte >( l_d2 ) );
+            l_d2[ 2 ] = std::byte{ 0xFF };
+            auto l_hChanged =
+                hash::balanced< T >( std::span< std::byte >( l_d2 ) );
+            EXPECT_NE( l_hOrig, l_hChanged )
+                << "Changing one byte produced same hash — extremely unlikely "
+                   "but "
+                   "possible.";
+
+            // -- Hashing string content (ensure layout correct) --
+            const std::string l_s = "hello, xxhash!";
+            const auto l_bytesFromString =
+                []( std::string_view _s ) -> std::vector< std::byte > {
+                std::vector< std::byte > l_out( _s.size() );
+                if ( !l_out.empty() ) {
+                    __builtin_memcpy( l_out.data(), _s.data(), _s.size() );
+                }
+                return ( l_out );
+            };
+            auto l_sbytes = l_bytesFromString( l_s );
+            auto l_hs =
+                hash::balanced< T >( std::span< std::byte >( l_sbytes ) );
+            if constexpr ( sizeof( T ) == sizeof( uint64_t ) ) {
+                // direct rapidhash 64bits of the original char data must match
+                // (no reinterpretation errors)
+                EXPECT_EQ( l_hs,
+                           static_cast< T >( rapidhash_withSeed(
+                               l_s.data(), l_s.size(),
+                               static_cast< unsigned >( 0x9e3779b1 ) ) ) );
+            }
+
+            // -- Larger data quick smoke test (no assertions beyond bounds) --
+            std::vector< std::byte > l_large( 1024 );
+            std::vector< unsigned char > l_tmp( l_large.size() );
+            std::ranges::iota( l_tmp, 0u );
+
+            std::ranges::transform(
+                l_tmp, l_large.begin(), []( unsigned char _c ) -> std::byte {
+                    return ( static_cast< std::byte >( _c ) );
+                } );
 #if 0
-        std::iota(
-            std::bit_cast< unsigned char* >( l_large.data() ),
-            std::bit_cast< unsigned char* >( l_large.data() + l_large.size() ),
-            0u ); // fill with increasing bytes (note: UB if reinterpret_cast
-                  // used with std::byte on write, but this is just to
-                  // illustrate)
+            std::iota(
+                std::bit_cast< unsigned char* >( l_large.data() ),
+                std::bit_cast< unsigned char* >( l_large.data() + l_large.size() ),
+                0u ); // fill with increasing bytes (note: UB if reinterpret_cast
+            // used with std::byte on write, but this is just to
+            // illustrate)
 #endif
-        // safer fill for std::byte:
-        for ( size_t l_i = 0; l_i < l_large.size(); ++l_i )
-            l_large[ l_i ] =
-                std::byte( static_cast< unsigned char >( l_i & 0xFF ) );
-        EXPECT_NO_FATAL_FAILURE( {
-            volatile auto l_hLarge =
-                hash::balanced< size_t >( std::span< std::byte >( l_large ) );
-            ( void )l_hLarge;
-        } );
+            // safer fill for std::byte:
+            for ( T l_i = 0; l_i < l_large.size(); ++l_i )
+                l_large[ l_i ] =
+                    std::byte( static_cast< unsigned char >( l_i & 0xFF ) );
+            EXPECT_NO_FATAL_FAILURE( {
+                volatile auto l_hLarge =
+                    hash::balanced< T >( std::span< std::byte >( l_large ) );
+                ( void )l_hLarge;
+            } );
+        };
+
+        // 64 bits
+        {
+            l_test.operator()< uint64_t >();
+        }
+
+        // 128 bits
+        {
+            l_test.operator()< uint128_t >();
+        }
     }
 }
 

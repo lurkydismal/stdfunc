@@ -8,6 +8,7 @@
 #include <span>
 #include <type_traits>
 
+#include "rapidhash.h"
 #include "std128.hpp"
 
 namespace stdfunc::hash {
@@ -52,7 +53,7 @@ template < std::integral T, typename ReturnT = std::make_unsigned_t< T > >
     return ( l_hash );
 }
 
-// xxHash3 for 64bits and 128bits
+// rapidhash for 64bits and xxHash3 for 128bits
 // TODO: Make constexpr
 template < std::integral T, typename ReturnT = std::make_unsigned_t< T > >
 [[nodiscard]] constexpr auto balanced( std::span< const std::byte > _data,
@@ -60,10 +61,14 @@ template < std::integral T, typename ReturnT = std::make_unsigned_t< T > >
     assert( _data.size() );
 
     if constexpr ( sizeof( T ) == sizeof( uint64_t ) ) {
-        return ( XXH3_64bits_withSeed( _data.data(), _data.size(), _seed ) );
+        return ( rapidhash_withSeed( _data.data(), _data.size(), _seed ) );
 
     } else if constexpr ( sizeof( T ) == sizeof( uint128_t ) ) {
-        return ( XXH3_128bits_withSeed( _data.data(), _data.size(), _seed ) );
+        XXH128_hash_t l_temp =
+            XXH3_128bits_withSeed( _data.data(), _data.size(), _seed );
+
+        return ( ( static_cast< uint128_t >( l_temp.high64 ) << 64 ) |
+                 l_temp.low64 );
 
     } else {
         // TODO: Message

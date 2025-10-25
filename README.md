@@ -68,7 +68,7 @@ See https://llvm.org/LICENSE.txt for license information.
   * `getPathsByRegexp` - runtime `std::regex` and compile-time `ctre` overload.
 * Hashing under `stdfunc::hash`:
   * `hash::weak` (`FNV-1A`) for 32bits, 64bits and 128bits.
-  * `hash::balanced` (`xxHash3`) for 64bits and 128bits.
+  * `hash::balanced` (`rapidhash`) for 64bits and (`xxHash3`) for 128bits.
 * Random utilities under `stdfunc::random`:
   * `random::number::weak` (`constexpr`-friendly `xor-shift*` generator for 32bits, 64bits and 128bits).
   * `random::number::balanced` (runtime 32bits or 64bits depending on build target).
@@ -89,7 +89,7 @@ Requirements/ dependencies:
 
 * C++ 23-capable compiler.
 * Add the following libraries if you use the related subsystems:
-  * `xxhash` for `hash::balanced`
+  * `rapidhash`, `xxhash` for `hash::balanced`
   * `snappy` for `compress::text`/ `decompress::text`
   * `zstd` library for `compress::data`/ `decompress::data`
   * `ctre`/ `ctll`  for compile-time `getPathsByRegexp`
