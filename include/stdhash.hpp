@@ -8,7 +8,14 @@
 #include <span>
 #include <type_traits>
 
+#if __has_include( "rapidhash.h" )
+
+#define HAS_RAPIDHASH
+
 #include "rapidhash.h"
+
+#endif
+
 #include "std128.hpp"
 
 namespace stdfunc::hash {
@@ -60,15 +67,19 @@ template < std::integral T, typename ReturnT = std::make_unsigned_t< T > >
                                        size_t _seed = 0x9E3779B1 ) -> ReturnT {
     assert( _data.size() );
 
-    if constexpr ( sizeof( T ) == sizeof( uint64_t ) ) {
-        return ( rapidhash_withSeed( _data.data(), _data.size(), _seed ) );
-
-    } else if constexpr ( sizeof( T ) == sizeof( uint128_t ) ) {
+    if constexpr ( sizeof( T ) == sizeof( uint128_t ) ) {
         XXH128_hash_t l_temp =
             XXH3_128bits_withSeed( _data.data(), _data.size(), _seed );
 
         return ( ( static_cast< uint128_t >( l_temp.high64 ) << 64 ) |
                  l_temp.low64 );
+
+#if defined( HAS_RAPIDHASH )
+
+    } else if constexpr ( sizeof( T ) == sizeof( uint64_t ) ) {
+        return ( rapidhash_withSeed( _data.data(), _data.size(), _seed ) );
+
+#endif
 
     } else {
         // TODO: Message

@@ -590,10 +590,14 @@ TEST( stdfunc, generateHash$balanced ) {
                 }
             };
 
+#if defined( HAS_RAPIDHASH )
+
             // 64 bits
             {
                 l_test.operator()< uint64_t >();
             }
+
+#endif
 
             // 128 bits
             {
@@ -623,10 +627,14 @@ TEST( stdfunc, generateHash$balanced ) {
             }
         };
 
+#if defined( HAS_RAPIDHASH )
+
         // 64 bits
         {
             l_test.operator()< uint64_t >();
         }
+
+#endif
 
         // 128 bits
         {
@@ -645,6 +653,8 @@ TEST( stdfunc, generateHash$balanced ) {
             auto l_h2 = hash::balanced< T >( l_span );
             EXPECT_EQ( l_h1, l_h2 );
 
+#if defined( HAS_RAPIDHASH )
+
             if constexpr ( sizeof( T ) == sizeof( uint64_t ) ) {
                 // wrapper sanity: matches direct rapidhash 64bits call (note
                 // cast to size_t for return type)
@@ -653,6 +663,8 @@ TEST( stdfunc, generateHash$balanced ) {
                                l_d.data(), l_d.size(),
                                static_cast< unsigned >( 0x9e3779b1 ) ) ) );
             }
+
+#endif
 
             // -- Default seed equals explicit default seed --
             auto l_hExplicitDefault = hash::balanced< T >( l_span, 0x9e3779b1 );
@@ -684,6 +696,8 @@ TEST( stdfunc, generateHash$balanced ) {
                    "but "
                    "possible.";
 
+#if defined( HAS_RAPIDHASH )
+
             // -- Hashing string content (ensure layout correct) --
             const std::string l_s = "hello, xxhash!";
             const auto l_bytesFromString =
@@ -694,9 +708,11 @@ TEST( stdfunc, generateHash$balanced ) {
                 }
                 return ( l_out );
             };
+
             auto l_sbytes = l_bytesFromString( l_s );
             auto l_hs =
                 hash::balanced< T >( std::span< std::byte >( l_sbytes ) );
+
             if constexpr ( sizeof( T ) == sizeof( uint64_t ) ) {
                 // direct rapidhash 64bits of the original char data must match
                 // (no reinterpretation errors)
@@ -705,6 +721,8 @@ TEST( stdfunc, generateHash$balanced ) {
                                l_s.data(), l_s.size(),
                                static_cast< unsigned >( 0x9e3779b1 ) ) ) );
             }
+
+#endif
 
             // -- Larger data quick smoke test (no assertions beyond bounds) --
             std::vector< std::byte > l_large( 1024 );
@@ -734,10 +752,14 @@ TEST( stdfunc, generateHash$balanced ) {
             } );
         };
 
+#if defined( HAS_RAPIDHASH )
+
         // 64 bits
         {
             l_test.operator()< uint64_t >();
         }
+
+#endif
 
         // 128 bits
         {

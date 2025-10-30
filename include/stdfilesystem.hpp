@@ -7,7 +7,14 @@
 #include <string_view>
 #include <vector>
 
+#if __has_include( "ctre/wrapper.hpp" )
+
+#define HAS_CONSTEXPR_REGEXP
+
 #include "ctre/wrapper.hpp"
+
+#endif
+
 #include "stdconcepts.hpp"
 
 namespace stdfunc::filesystem {
@@ -55,6 +62,8 @@ template < typename Matcher >
         } ) );
 }
 
+#if defined( HAS_CONSTEXPR_REGEXP )
+
 // Compile-time regexp
 template < size_t N >
     requires( N > 0 )
@@ -68,5 +77,7 @@ template < size_t N >
                                     return ( l_matcher( _fileName ) );
                                 } ) );
 }
+
+#endif
 
 } // namespace stdfunc::filesystem
