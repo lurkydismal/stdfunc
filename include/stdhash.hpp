@@ -8,6 +8,8 @@
 #include <span>
 #include <type_traits>
 
+#include "stdtodo.hpp"
+
 #if __has_include( "rapidhash.h" )
 
 #define HAS_RAPIDHASH
@@ -74,11 +76,11 @@ template < std::integral T, typename ReturnT = std::make_unsigned_t< T > >
         return ( ( static_cast< uint128_t >( l_temp.high64 ) << 64 ) |
                  l_temp.low64 );
 
-#if defined( HAS_RAPIDHASH )
-
     } else if constexpr ( sizeof( T ) == sizeof( uint64_t ) ) {
+#if defined( HAS_RAPIDHASH )
         return ( rapidhash_withSeed( _data.data(), _data.size(), _seed ) );
-
+#else
+        return ( XXH3_64bits_withSeed( _data.data(), _data.size(), _seed ) );
 #endif
 
     } else {
@@ -87,6 +89,48 @@ template < std::integral T, typename ReturnT = std::make_unsigned_t< T > >
     }
 }
 
-// TODO: Strong and Robust
+// TODO: Implement
+// BLAKE2 for 32bits, 64bits and 128bits
+template < std::integral T, typename ReturnT = std::make_unsigned_t< T > >
+[[nodiscard]] constexpr auto strong( std::span< const std::byte > _data,
+                                     size_t _seed = 0x9E3779B1 ) -> ReturnT {
+    assert( _data.size() );
+
+    if constexpr ( sizeof( T ) == sizeof( uint32_t ) ) {
+        todo();
+
+    } else if constexpr ( sizeof( T ) == sizeof( uint64_t ) ) {
+        todo();
+
+    } else if constexpr ( sizeof( T ) == sizeof( uint128_t ) ) {
+        todo();
+
+    } else {
+        // TODO: Message
+        static_assert( false );
+    }
+}
+
+// TODO: Implement
+// Argon2 for 32bits, 64bits and 128bits
+template < std::integral T, typename ReturnT = std::make_unsigned_t< T > >
+[[nodiscard]] constexpr auto robust( std::span< const std::byte > _data,
+                                     size_t _seed = 0x9E3779B1 ) -> ReturnT {
+    assert( _data.size() );
+
+    if constexpr ( sizeof( T ) == sizeof( uint32_t ) ) {
+        todo();
+
+    } else if constexpr ( sizeof( T ) == sizeof( uint64_t ) ) {
+        todo();
+
+    } else if constexpr ( sizeof( T ) == sizeof( uint128_t ) ) {
+        todo();
+
+    } else {
+        // TODO: Message
+        static_assert( false );
+    }
+}
 
 } // namespace stdfunc::hash

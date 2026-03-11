@@ -10,6 +10,7 @@
 
 #include "std128.hpp"
 #include "stdhash.hpp"
+#include "stdtodo.hpp"
 
 // Utility functions ( side-effects )
 namespace stdfunc::random {
@@ -138,7 +139,33 @@ auto balanced() -> T {
     }
 }
 
-// TODO: Strong and Robust
+// TODO: Implement
+template < typename T >
+    requires std::is_arithmetic_v< T >
+auto strong( T _min, T _max ) -> T {
+    todo();
+}
+
+// TODO: Implement
+template < typename T >
+    requires std::is_arithmetic_v< T >
+auto strong() -> T {
+    todo();
+}
+
+// TODO: Implement
+template < typename T >
+    requires std::is_arithmetic_v< T >
+auto robust( T _min, T _max ) -> T {
+    todo();
+}
+
+// TODO: Implement
+template < typename T >
+    requires std::is_arithmetic_v< T >
+auto robust() -> T {
+    todo();
+}
 
 template < typename T >
     requires std::is_arithmetic_v< T >

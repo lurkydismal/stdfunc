@@ -83,13 +83,53 @@ See https://llvm.org/LICENSE.txt for license information.
 
 Mostly `constexpr` where feasible.
 
+### Hash Strength Levels
+
+This project provides multiple hashing tiers optimized for different goals
+such as compile-time evaluation, runtime speed, and cryptographic security.
+
+| Level | Goal | Properties | Example Algorithms |
+|------|------|------------|-------------------|
+| **Weak** | Compile-time / minimal overhead | `constexpr`, extremely fast, tiny binary size, not collision resistant | FNV-1a |
+| **Balanced** | General-purpose hashing | Very fast, good distribution, suitable for most applications | xxHash3, rapidhash |
+| **Strong** | Cryptographic hashing | Collision resistant, suitable for security-sensitive hashing | BLAKE2 |
+| **Robust** | Password / key derivation | Memory-hard, resistant to brute-force and GPU attacks | Argon2 |
+
+#### Notes
+
+- **Weak** hashes prioritize compile-time evaluation and minimal overhead.
+- **Balanced** hashes provide excellent speed and quality for general use.
+- **Strong** hashes provide cryptographic guarantees such as collision resistance.
+- **Robust** algorithms are designed for password hashing and key derivation and intentionally trade speed for security.
+
+### Random Generator Strength Levels
+
+This project provides multiple tiers of random number generators (RNGs)
+optimized for different goals, such as compile-time evaluation, runtime speed,
+statistical quality, and cryptographic security.
+
+| Level | Goal | Properties | Example Generators |
+|-------|------|------------|------------------|
+| **Weak** | Compile-time / lightweight | `constexpr`, extremely fast, minimal state, small binary size, not cryptographically secure | xorshift* (xorshift multiply) |
+| **Balanced** | General-purpose RNG | High-quality randomness, suitable for simulations and games, platform-portable | `std::mt19937_64` (64-bit), fallback to `std::mt19937` if 64-bit not supported |
+| **Strong** | Cryptographically secure RNG | Produces unpredictable, high-entropy values suitable for cryptography, keys, nonces, and security-sensitive tasks | OpenSSL `RAND_bytes()` |
+| **Robust** | Cryptographically secure / system RNG | Resistant to prediction and attacks, suitable for security-critical tasks | `/dev/urandom` on Linux (platform-specific secure sources for other OSes) |
+
+#### Notes
+
+- **Weak** RNGs are ideal for quick computations, games, or compile-time randomness, but should not be used where security or high-quality randomness is required.
+- **Balanced** RNGs offer a good compromise between speed, quality, and portability; suitable for simulations, procedural generation, and most general tasks.
+- **Strong** RNGs provide excellent statistical quality and extremely long periods; useful for simulations and scientific computations requiring high-quality randomness.
+- **Robust** RNGs use system entropy or cryptographically secure sources to ensure unpredictability; intended for security-sensitive applications like key generation or cryptography.
+
 ## Setup
 
 Requirements/ dependencies:
 
 * C++ 23-capable compiler.
 * Add the following libraries if you use the related subsystems:
-  * `rapidhash`, `xxhash` for `hash::balanced`
+  * `rapidhash` or `xxhash` for 64bits `hash::balanced`
+  * `xxhash` for 128bits `hash::balanced`
   * `snappy` for `compress::text`/ `decompress::text`
   * `zstd` library for `compress::data`/ `decompress::data`
   * `ctre`/ `ctll`  for compile-time `getPathsByRegexp`
