@@ -1,9 +1,24 @@
 #include "stddecompress.hpp"
 
-#include <snappy.h>
-#include <zstd.h>
+#if __has_include( "snappy.h" )
+
+#define HAS_SNAPPY
+
+#include "snappy.h"
+
+#endif
+
+#if __has_include( "zstd.h" )
+
+#define HAS_ZSTD
+
+#include "zstd.h"
+
+#endif
 
 namespace stdfunc::decompress {
+
+#if defined( HAS_SNAPPY )
 
 auto text( std::string_view _data ) -> std::optional< std::string > {
     std::optional< std::string > l_returnValue = std::nullopt;
@@ -25,6 +40,10 @@ auto text( std::string_view _data ) -> std::optional< std::string > {
 
     return ( l_returnValue );
 }
+
+#endif
+
+#if defined( HAS_ZSTD )
 
 auto data( std::span< const std::byte > _data, size_t _originalSize )
     -> std::optional< std::vector< std::byte > > {
@@ -56,5 +75,7 @@ auto data( std::span< const std::byte > _data, size_t _originalSize )
 
     return ( l_returnValue );
 }
+
+#endif
 
 } // namespace stdfunc::decompress

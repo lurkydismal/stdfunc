@@ -1,7 +1,22 @@
 #include "stdcompress.hpp"
 
-#include <snappy.h>
-#include <zstd.h>
+#if __has_include( "snappy.h" )
+
+#define HAS_SNAPPY
+
+#include "snappy.h"
+
+#endif
+
+#if __has_include( "zstd.h" )
+
+#define HAS_ZSTD
+
+#include "zstd.h"
+
+#endif
+
+#if ( defined( HAS_SNAPPY ) || defined( HAS_ZSTD ) )
 
 #include <cstddef>
 #include <optional>
@@ -10,7 +25,11 @@
 #include <string_view>
 #include <vector>
 
+#endif
+
 namespace stdfunc::compress {
+
+#if defined( HAS_SNAPPY )
 
 auto text( std::string_view _text, size_t _level )
     -> std::optional< std::string > {
@@ -38,6 +57,10 @@ auto text( std::string_view _text, size_t _level )
 
     return ( l_returnValue );
 }
+
+#endif
+
+#if defined( HAS_ZSTD )
 
 auto data( std::span< const std::byte > _data, size_t _level )
     -> std::optional< std::vector< std::byte > > {
@@ -71,5 +94,7 @@ auto data( std::span< const std::byte > _data, size_t _level )
 
     return ( l_returnValue );
 }
+
+#endif
 
 } // namespace stdfunc::compress
