@@ -3,7 +3,12 @@
 #include <array>
 #include <cstddef>
 
+#if defined( __x86_64__ )
+
 #include "std128.hpp"
+
+#endif
+
 #include "stddebug.hpp"
 
 namespace stdfunc::literals {
@@ -27,6 +32,8 @@ template < typename SymbolTypes, SymbolTypes... _symbols >
         std::byte{ _symbols }... } );
 }
 
+#if defined( __x86_64__ )
+
 // TODO: Accept hex
 template < typename SymbolTypes, SymbolTypes... _symbols >
 [[nodiscard]] consteval auto operator""_u128() -> uint128_t {
@@ -34,5 +41,7 @@ template < typename SymbolTypes, SymbolTypes... _symbols >
 
     return ( makeU128( { _symbols... } ) );
 }
+
+#endif
 
 } // namespace stdfunc::literals

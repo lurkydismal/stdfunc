@@ -18,7 +18,13 @@
 
 #endif
 
+#if defined( __x86_64__ )
+
 #include "std128.hpp"
+
+#endif
+
+#include "stddebug.hpp"
 
 namespace stdfunc::hash {
 
@@ -39,9 +45,13 @@ template < std::integral T, typename ReturnT = std::make_unsigned_t< T > >
         l_offsetBasis = 0xCBF29CE484222325;
         l_prime = 0x100000001b3;
 
+#if defined( __x86_64__ )
+
     } else if constexpr ( sizeof( T ) == sizeof( uint128_t ) ) {
         l_offsetBasis = makeU128( "6C62272E07BB014262B821756295C58D" );
         l_prime = makeU128( "1000000000000000000013b" );
+
+#endif
 
     } else {
         // TODO: Message
@@ -69,18 +79,22 @@ template < std::integral T, typename ReturnT = std::make_unsigned_t< T > >
                                        size_t _seed = 0x9E3779B1 ) -> ReturnT {
     assert( _data.size() );
 
-    if constexpr ( sizeof( T ) == sizeof( uint128_t ) ) {
+    if constexpr ( sizeof( T ) == sizeof( uint64_t ) ) {
+#if defined( HAS_RAPIDHASH )
+        return ( rapidhash_withSeed( _data.data(), _data.size(), _seed ) );
+#else
+        return ( XXH3_64bits_withSeed( _data.data(), _data.size(), _seed ) );
+#endif
+
+#if defined( __x86_64__ )
+
+    } else if constexpr ( sizeof( T ) == sizeof( uint128_t ) ) {
         XXH128_hash_t l_temp =
             XXH3_128bits_withSeed( _data.data(), _data.size(), _seed );
 
         return ( ( static_cast< uint128_t >( l_temp.high64 ) << 64 ) |
                  l_temp.low64 );
 
-    } else if constexpr ( sizeof( T ) == sizeof( uint64_t ) ) {
-#if defined( HAS_RAPIDHASH )
-        return ( rapidhash_withSeed( _data.data(), _data.size(), _seed ) );
-#else
-        return ( XXH3_64bits_withSeed( _data.data(), _data.size(), _seed ) );
 #endif
 
     } else {
@@ -102,8 +116,12 @@ template < std::integral T, typename ReturnT = std::make_unsigned_t< T > >
     } else if constexpr ( sizeof( T ) == sizeof( uint64_t ) ) {
         todo();
 
+#if defined( __x86_64__ )
+
     } else if constexpr ( sizeof( T ) == sizeof( uint128_t ) ) {
         todo();
+
+#endif
 
     } else {
         // TODO: Message
@@ -124,8 +142,12 @@ template < std::integral T, typename ReturnT = std::make_unsigned_t< T > >
     } else if constexpr ( sizeof( T ) == sizeof( uint64_t ) ) {
         todo();
 
+#if defined( __x86_64__ )
+
     } else if constexpr ( sizeof( T ) == sizeof( uint128_t ) ) {
         todo();
+
+#endif
 
     } else {
         // TODO: Message

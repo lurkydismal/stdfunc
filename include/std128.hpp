@@ -1,5 +1,8 @@
 #pragma once
 
+// TODO: Implement for x32
+#if defined( __x86_64__ )
+
 #include <algorithm>
 #include <string_view>
 
@@ -30,3 +33,5 @@ namespace stdfunc {
 }
 
 } // namespace stdfunc
+
+#endif

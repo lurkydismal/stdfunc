@@ -8,7 +8,12 @@
 #include <limits>
 #include <random>
 
+#if defined( __x86_64__ )
+
 #include "std128.hpp"
+
+#endif
+
 #include "stdhash.hpp"
 #include "stdtodo.hpp"
 
@@ -30,8 +35,12 @@ constexpr T g_goldenRatioSeed = [] consteval -> ReturnT {
     } else if constexpr ( sizeof( T ) == sizeof( uint64_t ) ) {
         return ( 0x9E3779B97F4A7C15UL );
 
+#if defined( __x86_64__ )
+
     } else if constexpr ( sizeof( T ) == sizeof( uint128_t ) ) {
         return ( makeU128( "9E3779B97F4A7C15F39CC0605CEDC835" ) );
+
+#endif
     }
 }();
 
@@ -60,11 +69,15 @@ template < std::integral T, typename ReturnT = std::make_unsigned_t< T > >
         l_third = 27;
         l_multiplier = 0x2545F4914F6CDD1D;
 
+#if defined( __x86_64__ )
+
     } else if constexpr ( sizeof( T ) == sizeof( uint128_t ) ) {
         l_first = 35;
         l_second = 21;
         l_third = 45;
         l_multiplier = 0x2545F4914F6CDD1D;
+
+#endif
 
     } else {
         // TODO: Message
@@ -209,6 +222,9 @@ constexpr auto view( const Container& _container ) {
                  [ & ]( auto ) -> auto { return ( value( _container ) ); } ) );
 }
 
+// NOTE: std::ranges does not have generate() on x32
+#if defined( __x86_64__ )
+
 template < is_container Container, typename T = typename Container::value_type >
     requires std::is_arithmetic_v< T >
 constexpr void fill( Container& _container, T _min, T _max ) {
@@ -242,5 +258,7 @@ constexpr void fill( Container& _container ) {
             number::g_defaultNumberGenerator< uint32_t >() ) );
     } );
 }
+
+#endif
 
 } // namespace stdfunc::random

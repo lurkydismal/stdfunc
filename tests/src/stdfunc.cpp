@@ -8,7 +8,12 @@
 #include <numeric>
 #include <unordered_set>
 
+#if defined( __x86_64__ )
+
 #include "std128.hpp"
+
+#endif
+
 #include "stdcompress.hpp"
 #include "stddecompress.hpp"
 #include "stdfilesystem.hpp"
@@ -599,11 +604,15 @@ TEST( stdfunc, generateHash$balanced ) {
 
 #endif
 
+#if defined( __x86_64__ )
+
             // 128 bits
             {
                 l_test.operator()< uint128_t >();
             }
         }
+
+#endif
     }
 
     // Valid buffer
@@ -636,10 +645,14 @@ TEST( stdfunc, generateHash$balanced ) {
 
 #endif
 
+#if defined( __x86_64__ )
+
         // 128 bits
         {
             l_test.operator()< uint128_t >();
         }
+
+#endif
     }
 
     // Other tests
@@ -761,10 +774,14 @@ TEST( stdfunc, generateHash$balanced ) {
 
 #endif
 
+#if defined( __x86_64__ )
+
         // 128 bits
         {
             l_test.operator()< uint128_t >();
         }
+
+#endif
     }
 }
 
