@@ -106,7 +106,7 @@ template < std::integral T >
                                    T _max,
                                    T _seed = g_goldenRatioSeed< T > ) -> T {
     const T l_range = ( _max - _min + 1 );
-    const T l_limit =
+    const std::make_unsigned_t< T > l_limit =
         ( ( std::numeric_limits< T >::max() / l_range ) * l_range );
 
     std::make_unsigned_t< T > l_result = 0;
