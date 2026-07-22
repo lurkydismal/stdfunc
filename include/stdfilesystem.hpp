@@ -1,17 +1,25 @@
 #pragma once
 
 #include <filesystem>
-#include <optional>
 #include <regex>
 #include <string>
 #include <string_view>
 #include <vector>
 
+// FIX: Better guard or port
+#if __has_include( "linux/limits.h" )
+
+#include <optional>
+
+#define HAS_LINUX_LIMITS
+
+#endif
+
 #if __has_include( "ctre/wrapper.hpp" )
 
-#define HAS_CONSTEXPR_REGEXP
-
 #include "ctre/wrapper.hpp"
+
+#define HAS_CONSTEXPR_REGEXP
 
 #endif
 
@@ -19,9 +27,13 @@
 
 namespace stdfunc::filesystem {
 
+#if defined( HAS_LINUX_LIMITS )
+
 // Utility OS specific functions ( no side-effects )
 [[nodiscard]] auto getApplicationDirectoryAbsolutePath()
     -> std::optional< std::filesystem::path >;
+
+#endif
 
 namespace {
 
