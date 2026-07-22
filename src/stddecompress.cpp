@@ -2,17 +2,17 @@
 
 #if __has_include( "snappy.h" )
 
-#define HAS_SNAPPY
-
 #include "snappy.h"
+
+#define HAS_SNAPPY
 
 #endif
 
 #if __has_include( "zstd.h" )
 
-#define HAS_ZSTD
-
 #include "zstd.h"
+
+#define HAS_ZSTD
 
 #endif
 

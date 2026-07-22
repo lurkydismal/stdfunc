@@ -1,3 +1,5 @@
+#if defined( HAS_LINUX_LIMITS )
+
 #include "stdfilesystem.hpp"
 
 #include <linux/limits.h>
@@ -28,3 +30,5 @@ namespace stdfunc::filesystem {
 }
 
 } // namespace stdfunc::filesystem
+
+#endif

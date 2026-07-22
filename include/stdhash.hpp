@@ -1,7 +1,5 @@
 #pragma once
 
-#include <xxh3.h>
-
 #include <concepts>
 #include <cstddef>
 #include <ranges>
@@ -10,11 +8,19 @@
 
 #include "stdtodo.hpp"
 
+#if __has_include( "xxh3.h" )
+
+#include <xxh3.h>
+
+#define HAS_XXH3
+
+#endif
+
 #if __has_include( "rapidhash.h" )
 
-#define HAS_RAPIDHASH
-
 #include "rapidhash.h"
+
+#define HAS_RAPIDHASH
 
 #endif
 
@@ -82,11 +88,11 @@ template < std::integral T, typename ReturnT = std::make_unsigned_t< T > >
     if constexpr ( sizeof( T ) == sizeof( uint64_t ) ) {
 #if defined( HAS_RAPIDHASH )
         return ( rapidhash_withSeed( _data.data(), _data.size(), _seed ) );
-#else
+#elif defined( HAS_XXH3 )
         return ( XXH3_64bits_withSeed( _data.data(), _data.size(), _seed ) );
 #endif
 
-#if defined( __x86_64__ )
+#if defined( __x86_64__ ) && defined( HAS_XXH3 )
 
     } else if constexpr ( sizeof( T ) == sizeof( uint128_t ) ) {
         XXH128_hash_t l_temp =
