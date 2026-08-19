@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.16.0 FATAL_ERROR)
+cmake_minimum_required(VERSION 3.23.0 FATAL_ERROR)
 
 set(PROJECT_NAME stdfunc)
 
