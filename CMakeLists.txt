@@ -4,11 +4,11 @@ set(PROJECT_NAME stdfunc)
 
 project(${PROJECT_NAME} VERSION 1.0.0 LANGUAGES CXX)
 
-# TODO: Make optional
-find_package(xxHash REQUIRED)
-find_package(Snappy REQUIRED)
-find_package(zstd REQUIRED)
-find_package(glaze REQUIRED)
+option(STDFUNC_USE_XXHASH "Enable XXHash for fast non-cryptographic hashing." OFF)
+option(STDFUNC_USE_SNAPPY "Enable Snappy compression support." OFF)
+option(STDFUNC_USE_ZSTD "Enable Zstandard compression support." OFF)
+option(STDFUNC_USE_GLAZE "Enable Glaze for compile-time struct iteration and member detection." OFF)
+option(STDFUNC_USE_CTRE "Enable CTRE for compile-time regular expressions." OFF)
 
 # TODO: Separate to sub targets
 add_library(${PROJECT_NAME}
@@ -32,12 +32,27 @@ target_include_directories(${PROJECT_NAME}
         $<INSTALL_INTERFACE:include>
 )
 
-# TODO: Make optional
-target_link_libraries(${PROJECT_NAME}
-    PUBLIC
-        xxHash::xxhash
-        snappy
-        libzstd
-        glaze::glaze
-)
+if(STDFUNC_USE_XXHASH)
+    find_package(xxHash REQUIRED)
+    target_link_libraries(${PROJECT_NAME} PUBLIC xxHash::xxhash)
+endif()
 
+if(STDFUNC_USE_SNAPPY)
+    find_package(Snappy REQUIRED)
+    target_link_libraries(${PROJECT_NAME} PUBLIC snappy)
+endif()
+
+if(STDFUNC_USE_ZSTD)
+    find_package(zstd REQUIRED)
+    target_link_libraries(${PROJECT_NAME} PUBLIC libzstd)
+endif()
+
+if(STDFUNC_USE_GLAZE)
+    find_package(glaze REQUIRED)
+    target_link_libraries(${PROJECT_NAME} PUBLIC glaze::glaze)
+endif()
+
+if(STDFUNC_USE_CTRE)
+    find_package(ctre REQUIRED)
+    target_link_libraries(${PROJECT_NAME} PUBLIC ctre::ctre)
+endif()
